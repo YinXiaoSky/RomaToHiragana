@@ -161,9 +161,10 @@ dotnet publish -c Release -r win-x64 --self-contained false
 
 内置 `.github/workflows/release.yml`：当推送 `v*` 标签（如 `v1.0.0`）时，自动：
 
-1. 构建并以 `win-x64` 发布（单文件、自包含）。
-2. 从 [CHANGELOG.md](CHANGELOG.md) 抽取与当前版本对应的那一段作为 **Release Notes**。
-3. 创建 GitHub Release（`softprops/action-gh-release`），上传发布产物。
+1. 构建并以 `win-x64` 发布（单文件、自包含，原生库已内嵌）。
+2. **打包为 `RomaToHiragana-win-x64-<版本>.zip`**。
+3. 从 [CHANGELOG.md](CHANGELOG.md) 抽取与当前版本对应的那一段作为 **Release Notes**。
+4. 创建 GitHub Release（`softprops/action-gh-release`），上传该 zip 作为发布产物。
 
 因此发新版的流程是：更新 `CHANGELOG.md` → 打 `vX.Y.Z` 标签并推送 → 自动出 Release。
 
