@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  PROJECT: RomaToHiragana.csproj
+  RID: win-x64
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: "**/*.csproj"
+
+      - name: Restore dependencies
+        run: dotnet restore "$env:PROJECT"
+
+      - name: Publish (Release, ${{ env.RID }})
+        run: |
+          dotnet publish "$env:PROJECT" -c Release -r "$env:RID" --self-contained true /p:PublishSingleFile=true -o "artifacts"
+
+      - name: Extract changelog section for this version
+        id: changelog
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $version = $tag.TrimStart('v')
+          $lines = Get-Content -Path 'CHANGELOG.md'
+          $esc = [regex]::Escape($version)
+
+          $start = -1
+          for ($i = 0; $i -lt $lines.Count; $i++) {
+              if ($lines[$i] -match '^##\s' -and $lines[$i] -match $esc) {
+                  $start = $i
+                  break
+              }
+          }
+          if ($start -lt 0) {
+              Write-Error "未在 CHANGELOG.md 中找到版本 '$version' 对应的条目。"
+              exit 1
+          }
+
+          $end = $lines.Count
+          for ($i = $start + 1; $i -lt $lines.Count; $i++) {
+              if ($lines[$i] -match '^##\s') {
+                  $end = $i
+                  break
+              }
+          }
+
+          $notes = ($lines[$start..($end - 1)] -join "`n")
+          $notes | Out-File -FilePath 'release_notes.md' -Encoding utf8
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: RomaToHiragana-${{ env.RID }}-release
+          path: artifacts/
+          if-no-files-found: error
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: release_notes.md
+          files: artifacts/*
+          draft: false
+          prerelease: false
