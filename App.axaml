@@ -1,0 +1,13 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             x:Class="RomaToHiragana.App"
+             RequestedThemeVariant="Default">
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <!-- PreferSystemTheme 使主题色跟随 Windows 系统（浅色/深色/高对比度自动切换） -->
+        <sty:FluentAvaloniaTheme PreferSystemTheme="True"
+                                 PreferUserAccentColor="True" />
+    </Application.Styles>
+</Application>

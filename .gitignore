@@ -1,0 +1,46 @@
+# ============================================================
+# .NET (C#) — RomaToHiragana
+# ============================================================
+
+# ---- 构建产物 ----
+bin/
+obj/
+publish/
+
+# ---- Visual Studio / Rider / VS Code ----
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---- Build results / NuGet ----
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+*.NuGet.props
+*.NuGet.targets
+[Nn]u[Gg]et/
+
+# ---- Test 结果 ----
+TestResults/
+*.trx
+
+# ---- 日志 / 临时文件 ----
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+
+# ---- 操作系统生成 ----
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ---- 发布/发布物压缩包（如需入库可移除此行）----
+*.zip
