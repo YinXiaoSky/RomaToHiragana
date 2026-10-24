@@ -1,19 +1,6 @@
 namespace RomaToHiragana.Services;
 
-/// <summary>
-/// 单个待处理文件的数据模型。由 <see cref="IFileScanner"/> 创建，
-/// 在 UI 展示和由 <see cref="IFileRenamer"/> 执行重命名时使用。
-///</summary>
-public interface IFileInfo
-{
-    int Index { get; }
-    string OriginalPath { get; }
-    string OriginalFileName { get; }
-    string ConvertedFileName { get; }
-    string Extension { get; }
-    RenameStatus Status { get; set; }
-}
-
+/// <summary>文件在列表中的处理状态。</summary>
 public enum RenameStatus
 {
     Pending,

@@ -18,6 +18,11 @@
     <None Include=".github\workflows\build.yml" />
   </ItemGroup>
 
+  <!-- 测试代码在独立项目 Tests\RomaToHiragana.Tests.csproj 中编译，不并入主程序 -->
+  <ItemGroup>
+    <Compile Remove="Tests\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Avalonia 12 基础包 -->
     <PackageReference Include="Avalonia" Version="12.0.0" />

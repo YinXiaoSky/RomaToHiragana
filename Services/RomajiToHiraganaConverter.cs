@@ -9,10 +9,11 @@ namespace RomaToHiragana.Services;
 ///   - 基本五十音：清音、浊音、半浊音（a・ka・shi・tsu・ga・pa 等）
 ///   - 拗音：kya・sho・nyu・gyo 等
 ///   - 长音：元音重复（aa/ii/uu/ee/oo）与 "ou" 形式（kou → こう）
-///   - 促音：双写辅音（kitto → きっと，gakkou → がっこう）
+///   - 促音：双写辅音（kitto → きっと，gakkou → がっこう），仅当其后紧跟可识别的罗马字
 ///   - 拨音："n" 在词尾或辅音前 → ん；"n" + 元音 → な行
 ///   - 兼容训令式（si/ti/tu/hu/zi/sya/tya...）与旧式ヘボン（mb/mp → ん）
-///   - 无法识别的字符原样保留（数字、标点、汉字、假名等不受影响）
+///   - 无法识别的字符原样保留（数字、标点、汉字、假名等不受影响）；
+///     紧跟无法识别字符的元音也一并保留（file 等英文单词尽量不被拆开）
 /// </summary>
 public sealed class RomajiToHiraganaConverter : IRomajiConverter
 {
@@ -103,8 +104,11 @@ public sealed class RomajiToHiraganaConverter : IRomajiConverter
                 continue;
             }
 
-            // 促音：同一个辅音连续出现（nn 除外，nn 表示 んん）
-            if (c != 'n' && IsConsonant(c) && i + 1 < text.Length && text[i + 1] == c)
+            // 促音：同一个辅音连续出现（nn 除外，nn 表示 んん），
+            // 且双写之后紧跟可识别的罗马字（如 kitto/gakkou/kippu）。
+            // 否则视为普通单词的一部分原样保留（避免 "hello" 被转成 "へっお"）。
+            if (c != 'n' && IsConsonant(c) && i + 1 < text.Length
+                && text[i + 1] == c && HasMatchAt(text, i + 1))
             {
                 sb.Append('っ');
                 i++;
@@ -118,6 +122,15 @@ public sealed class RomajiToHiraganaConverter : IRomajiConverter
                 sb.Append('ん');
                 i++;
                 prevKeptAsIs = false;
+                continue;
+            }
+
+            // 元音紧跟在无法识别的字符之后时一并原样保留（避免 "file" 被转成 "fいlえ"）。
+            // 该判断必须先于最长匹配执行：否则 "i" 等单字符键总会命中，兜底永远不生效。
+            if (IsVowel(c) && prevKeptAsIs)
+            {
+                sb.Append(c);
+                i++;
                 continue;
             }
 
@@ -143,16 +156,7 @@ public sealed class RomajiToHiraganaConverter : IRomajiConverter
                 continue;
             }
 
-            // 无法识别时保持原样。若紧跟在未转换字符之后的元音，
-            // 也一并原样保留（避免 "file" 被转成 "fいlえ"）。
-            if (IsVowel(c) && prevKeptAsIs)
-            {
-                sb.Append(c);
-                i++;
-                prevKeptAsIs = true;
-                continue;
-            }
-
+            // 无法识别的辅音等字符原样保留
             sb.Append(c);
             i++;
             prevKeptAsIs = true;
@@ -165,4 +169,16 @@ public sealed class RomajiToHiraganaConverter : IRomajiConverter
 
     private static bool IsVowel(char c) =>
         c is 'a' or 'i' or 'u' or 'e' or 'o';
+
+    /// <summary>判断从 <paramref name="pos"/> 开始是否至少能匹配出一个假名。</summary>
+    private static bool HasMatchAt(string text, int pos)
+    {
+        int max = Math.Min(MaxKeyLength, text.Length - pos);
+        for (int len = max; len >= 1; len--)
+        {
+            if (KanaMap.TryGetValue(text.Substring(pos, len), out _))
+                return true;
+        }
+        return false;
+    }
 }

@@ -3,8 +3,10 @@
                  xmlns:wnd="using:FluentAvalonia.UI.Windowing"
                  xmlns:ui="using:FluentAvalonia.UI.Controls"
                  xmlns:local="using:RomaToHiragana.Services"
+                 xmlns:vm="using:RomaToHiragana.ViewModels"
                  xmlns:sys="using:System"
                  x:Class="RomaToHiragana.MainWindow"
+                 x:DataType="vm:MainWindowViewModel"
                  Title="RomaToHiragana"
                  Width="780"
                  Height="600"
@@ -15,50 +17,46 @@
             <!-- 文件夹选择区 -->
             <TextBlock Text="选择包含目标文件的文件夹：" FontWeight="SemiBold" />
             <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBox x:Name="FolderPathTextBox"
-                         PlaceholderText="请选择文件夹路径"
+                <TextBox PlaceholderText="请选择文件夹路径"
                          MinWidth="580"
-                         IsReadOnly="True" />
-                <Button x:Name="BrowseButton"
-                        Content="浏览..."
+                         IsReadOnly="True"
+                         Text="{Binding FolderPath, Mode=OneWay}" />
+                <Button Content="浏览..."
                         MinWidth="80"
                         Click="OnBrowseClick" />
            </StackPanel>
 
-            <!-- 操作按钮区 -->
+            <!-- 操作按钮区（执行期间由命令的 CanExecute 自动禁用） -->
             <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button x:Name="RefreshButton"
-                        Content="刷新文件列表"
+                <Button Content="刷新文件列表"
                         MinWidth="130"
-                        Click="OnRefreshClick" />
-                <Button x:Name="RenameButton"
-                        Content="开始批量转换并重命名"
+                        Command="{Binding RefreshCommand}" />
+                <Button Content="开始批量转换并重命名"
                         MinWidth="180"
-                        Click="OnRenameClick" />
+                        Command="{Binding RenameCommand}" />
            </StackPanel>
 
             <!-- 状态消息（FAUI 原生 FAInfoBar 控件） -->
-            <ui:FAInfoBar x:Name="StatusInfoBar"
-                          Severity="Informational"
-                          IsOpen="False"
-                          IsClosable="True" />
+            <ui:FAInfoBar IsClosable="True"
+                          IsOpen="{Binding IsStatusOpen, Mode=TwoWay}"
+                          Severity="{Binding StatusSeverity}"
+                          Title="{Binding StatusTitle}"
+                          Message="{Binding StatusMessage}" />
 
             <!-- 文件列表区 -->
             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
                 <TextBlock Text="转换预览（仅文件名主体部分会被转换，扩展名始终保持原样）："
                            FontWeight="SemiBold"
                            VerticalAlignment="Center" />
-                <Button x:Name="SelectAllButton"
-                        Content="全选"
+                <Button Content="全选"
                         MinWidth="56"
-                        Click="OnSelectAllClick" />
-                <Button x:Name="SelectNoneButton"
-                        Content="全不选"
+                        Command="{Binding SelectAllCommand}" />
+                <Button Content="全不选"
                         MinWidth="68"
-                        Click="OnSelectNoneClick" />
+                        Command="{Binding SelectNoneCommand}" />
            </StackPanel>
             <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4">
-                <ListBox x:Name="FileListBox" MaxHeight="260">
+                <ListBox ItemsSource="{Binding Files}" MaxHeight="260">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="local:FileItem">
                             <Grid ColumnDefinitions="40,30,250,250,90" Margin="0,1">
@@ -77,17 +75,17 @@
 
             <!-- 统计栏 -->
             <StackPanel Orientation="Horizontal" Spacing="24">
-                <TextBlock x:Name="TotalCountText" Text="总文件数：0" />
-                <TextBlock x:Name="ConvertibleCountText" Text="待转换：0" />
-                <TextBlock x:Name="SkippedCountText" Text="已跳过：0" />
-                <TextBlock x:Name="ErrorCountText" Text="失败：0" Foreground="#CC3333" />
+                <TextBlock Text="{Binding TotalCountDisplay}" />
+                <TextBlock Text="{Binding PendingCountDisplay}" />
+                <TextBlock Text="{Binding SkippedCountDisplay}" />
+                <TextBlock Text="{Binding FailedCountDisplay}" Foreground="#CC3333" />
            </StackPanel>
 
             <!-- 操作日志 -->
             <TextBlock Text="操作日志：" FontWeight="SemiBold" Margin="0,8,0,0" />
             <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Background="#FAFAFA">
                 <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto" MaxHeight="120">
-                    <ItemsControl x:Name="LogItemsControl">
+                    <ItemsControl ItemsSource="{Binding Logs}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="sys:String">
                                 <TextBlock Text="{Binding}"

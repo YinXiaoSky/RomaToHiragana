@@ -34,6 +34,11 @@ jobs:
       - name: Build (Debug)
         run: dotnet build "$env:PROJECT" -c Debug --no-restore
 
+      - name: Test
+        run: |
+          dotnet restore "Tests\RomaToHiragana.Tests.csproj"
+          dotnet test "Tests\RomaToHiragana.Tests.csproj" -c Debug --no-restore
+
       - name: Publish (Release, ${{ env.RID }})
         run: |
           dotnet publish "$env:PROJECT" -c Release -r "$env:RID" --self-contained true /p:PublishSingleFile=true -o "artifacts"

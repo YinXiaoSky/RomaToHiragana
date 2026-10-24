@@ -4,10 +4,10 @@ using System.Runtime.CompilerServices;
 namespace RomaToHiragana.Services;
 
 /// <summary>
-/// 默认的 <see cref="IFileInfo"/> 实现。所有属性为 init-only，
-/// 只有 <see cref="Status"/> 可在重命名过程中被修改并通知 UI。
+/// 文件列表中的单个条目。属性为 init-only，只有 <see cref="Status"/> 和
+/// <see cref="Include"/> 可变并通知 UI。
 ///</summary>
-public sealed class FileItem : IFileInfo, INotifyPropertyChanged
+public sealed class FileItem : INotifyPropertyChanged
 {
     private RenameStatus _status;
     private bool _include = true;
